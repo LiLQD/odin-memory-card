@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { cardList, fisherYatesShuffle } from "./Cards";
+import { channelFilter, fisherYatesShuffle } from "./Cards";
 import "./App.css";
+import { useEffect } from "react";
 function App() {
   const [currentScore, setCurrentScore] = useState(0);
   const [bestScore, setBestScore] = useState(0);
@@ -44,7 +45,41 @@ function Card({ name, photo, handleClick }) {
 }
 function CardList({ currentScore, bestScore, setCurrentScore, setBestScore }) {
   const [selected, setSelected] = useState([]);
-  const [cards, setCards] = useState(cardList);
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(
+      "https://holodex.net/api/v2/channels?org=Hololive&type=vtuber&limit=100",
+      { headers: { "X-APIKEY": import.meta.env.VITE_HOLODEX_API_KEY } },
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        const filteredData = channelFilter(data);
+        setCards(fisherYatesShuffle(filteredData).slice(0, 12));
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  function handleCardClick(id) {
+    if (!selected.includes(id)) {
+      const newSelected = [...selected, id];
+      setSelected(newSelected);
+      const score = currentScore + 1;
+      if (score > bestScore) setBestScore(score);
+      setCurrentScore(score);
+      if (newSelected.length === cards.length) {
+        alert("You win!");
+        setSelected([]);
+      }
+      setCards(fisherYatesShuffle(cards));
+    } else {
+      setCurrentScore(0);
+      setSelected([]);
+      setCards(fisherYatesShuffle(cards));
+    }
+  }
   const listItems = cards.map((card) => (
     <Card
       name={card.english_name}
@@ -53,19 +88,7 @@ function CardList({ currentScore, bestScore, setCurrentScore, setBestScore }) {
       key={card.id}
     />
   ));
-  function handleCardClick(id) {
-    if (!selected.includes(id)) {
-      setSelected([...selected, id]);
-      const score = currentScore + 1;
-      if (score > bestScore) setBestScore(score);
-      setCurrentScore(score);
-      setCards(fisherYatesShuffle(cards));
-    } else {
-      setCurrentScore(0);
-      setSelected([]);
-      setCards(fisherYatesShuffle(cards));
-    }
-  }
+
   return <div className="card-list">{listItems}</div>;
 }
 export default App;
