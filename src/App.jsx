@@ -47,7 +47,7 @@ function CardList({ currentScore, bestScore, setCurrentScore, setBestScore }) {
   const [selected, setSelected] = useState([]);
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [newGame, setNewGame] = useState(true);
   useEffect(() => {
     fetch(
       "https://holodex.net/api/v2/channels?org=Hololive&type=vtuber&limit=100",
@@ -59,25 +59,25 @@ function CardList({ currentScore, bestScore, setCurrentScore, setBestScore }) {
         setCards(fisherYatesShuffle(filteredData).slice(0, 12));
         setLoading(false);
       });
-  }, []);
+  }, [newGame]);
 
   if (loading) return <p>Loading...</p>;
   function handleCardClick(id) {
     if (!selected.includes(id)) {
       const newSelected = [...selected, id];
-      setSelected(newSelected);
-      const score = currentScore + 1;
-      if (score > bestScore) setBestScore(score);
-      setCurrentScore(score);
       if (newSelected.length === cards.length) {
         alert("You win!");
         setSelected([]);
-      }
+        setNewGame(!newGame);
+      } else setSelected(newSelected);
+      const score = currentScore + 1;
+      if (score > bestScore) setBestScore(score);
+      setCurrentScore(score);
       setCards(fisherYatesShuffle(cards));
     } else {
       setCurrentScore(0);
       setSelected([]);
-      setCards(fisherYatesShuffle(cards));
+      setNewGame(!newGame);
     }
   }
   const listItems = cards.map((card) => (
