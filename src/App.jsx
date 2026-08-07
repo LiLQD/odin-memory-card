@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { channelFilter, fisherYatesShuffle } from "./Cards";
-import "./App.css";
+import "./styles.css";
 import { useEffect } from "react";
 function App() {
   const [currentScore, setCurrentScore] = useState(0);
